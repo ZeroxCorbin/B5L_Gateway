@@ -1,37 +1,46 @@
-#include <unistd.h>
-#include <iostream>
-#include <chrono>
-#include <thread>
-
-#include <pcl/io/pcd_io.h>
-
 #include "main.h"
-#include "clsTCPSocket.h"
 
 using namespace std::chrono_literals;
+const char *FilePath="/home/zeroxcorbin/file.pcd";
 
 /* Output formate */
 INT32 Tof_output_format = 0;
 
 int ExitApp = 0;
 
+clsTCPSocket Listener;
 
-clsTCPSocket *Listener;
-
-int IsListening = 0;
-int ClientAccept = 0;
-int ClientConnected = 0;
-
-void GetImageFile(){
-	std::cout<< "Reading image and saving to file."<< std::endl;
+bool SaveImageFile(){
+	std::cout<< "Reading sensor and saving to file."<< std::endl;
 
 	pcl::PointCloud<pcl::PointXYZI> cloud_;
-	int Ret1 = CTOFSample::Run(&cloud_);
-	if (Ret1 == 0)
+	if (CTOFSample::Run(&cloud_) == 0)
 	{
-		const char *path="/home/zeroxcorbin/file.pcd";
+		pcl::PCDWriter w;
+		w.writeBinaryCompressed (FilePath, cloud_);
+
 		std::cout<< "File saved."<< std::endl;
-		pcl::io::savePCDFileASCII (path, cloud_);
+		return true;
+	}
+	return false;
+}
+
+void SendImageFile(clsTCPSocket *client){
+	std::cout<< "Reading sensor and sending data."<< std::endl;
+
+	if(SaveImageFile()){
+		std::ifstream infile;
+		infile.open(FilePath, std::ios::binary);
+		infile.seekg(0, std::ios::end);
+		size_t file_size_in_byte = infile.tellg();
+		std::vector<char> data; // used to store text data
+		data.resize(file_size_in_byte);
+		infile.seekg(0, std::ios::beg);
+		infile.read(&data[0], file_size_in_byte);
+		infile.close();
+
+		client->Write(&data[0]);
+
 	}
 }
 
@@ -41,10 +50,13 @@ void ClientConnectedThread(clsTCPSocket *client){
 	while(true){
 		long len = client->Read();
 		if(len > 0){
-			if(client->recBuffer[0] == 'g'){
-				GetImageFile();
+			if(strcmp(client->recBuffer, "save\r\n") == 0){
+				SaveImageFile();
 			}
-			if(client->recBuffer[0] == 'exit'){
+			if(strcmp(client->recBuffer, "send\r\n") == 0){
+				SendImageFile(client);
+			}
+			if(strcmp(client->recBuffer, "exit\r\n") == 0){
 				ExitApp = 1;
 				break;
 			}
@@ -53,32 +65,28 @@ void ClientConnectedThread(clsTCPSocket *client){
 		}
 	}
 	client->Close();
-
 }
 
 void ListenWaitThread(){
 
+	Listener.NameIP = "";
+	Listener.Port = 8890;
+	
+	if(!Listener.Configure()){
+		ExitApp = 1;
+		return;
+	}
 
 	std::cout<< "Listening..."<< std::endl;
 
 	while(true){
-		Listener = new(clsTCPSocket);
-
-		Listener->NameIP = "";
-		Listener->Port = 8890;
-		
-		if(!Listener->Configure()){
-			ExitApp = 1;
-			return;
-		}
 
 		clsTCPSocket *client = new (clsTCPSocket);
 
-		if(Listener->Listen(client)){
+		if(Listener.Listen(client)){
 			ClientConnectedThread(client);
 
-			client->Close();
-			Listener->Close();
+			delete(client);
 
 			if(ExitApp == 1){
 				break;
@@ -88,10 +96,9 @@ void ListenWaitThread(){
 			ExitApp = 1;
 
 			client->Close();
-			Listener->Close();
+			Listener.Close();
 
 			delete(client);
-			delete(Listener);
 
 			break;
 		}	
@@ -132,7 +139,7 @@ int main()
 
 	std::cout<< "B5L Testing version 0.2 exiting"<< std::endl;
 	
-	Listener->Close();
+	Listener.Close();
 
 	CTOFSample::Stop();
 
