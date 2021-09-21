@@ -40,6 +40,7 @@ void SendImageFile(clsTCPSocket *client){
 		infile.close();
 
 		client->Write(&data[0]);
+		std::cout<< "Sending data complete."<< std::endl;
 
 	}
 }
