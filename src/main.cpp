@@ -106,9 +106,10 @@ void ListenWaitThread(){
 	}
 }
 
+
 int main()
 {
-	std::string config_file = SOURCE_DIR_PREFIX;
+	
 
 	/* Load USB serial module */
 #ifdef PI
@@ -119,7 +120,7 @@ int main()
 	// Listener.NameIP = "192.168.0.123";
 	// Listener.Port = 8890;
 	// if(!Listener.Configure()) return -1;
-
+	std::string config_file = SOURCE_DIR_PREFIX;
 	config_file.append(CONFIG_FILE_PATH);
 
 	std::cout<< "B5L Testing version 0.2 starting"<< std::endl;
