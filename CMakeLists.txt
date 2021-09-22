@@ -60,10 +60,10 @@ link_directories(${PCL_LIBRARY_DIRS})
 
 add_executable(
      b5l_gateway
+     src/b5l_gateway.cpp
      src/ToF_Sample.cpp
      src/TOFApiZ.cpp
      src/uart_linux.c
-     src/main.cpp
      support/clsTCPSocket.cpp
      support/libException.cpp
      #src/openni_mobile_server.cpp

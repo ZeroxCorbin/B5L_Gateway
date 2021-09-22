@@ -6,7 +6,7 @@
  */
 /************TCPSocket.c************************/
 
-#include "clsTCPSocket.h"
+#include "clsTCPSocket.hpp"
 
 bool clsTCPSocket::Configure(){
 

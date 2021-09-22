@@ -10,7 +10,7 @@
 
 #include <cstdlib>
 
-#include "clsTCPSocket.h"
+#include "clsTCPSocket.hpp"
 
 class clsFTPClient{
 private:

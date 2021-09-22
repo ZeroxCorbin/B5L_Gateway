@@ -12,7 +12,7 @@
 
 #include <pcl/io/pcd_io.h>
 
-#include "clsTCPSocket.h"
+#include "clsTCPSocket.hpp"
 #include "ToF_Sample.hpp"
 
 /* Config file string */

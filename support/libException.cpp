@@ -5,7 +5,7 @@
  *      Author: Jack Bowling
  */
 
-#include "libException.h"
+#include "libException.hpp"
 
 void UpdateUser(char* Message, long Code){
 	std::cout << "Exception occurred:\n;;";

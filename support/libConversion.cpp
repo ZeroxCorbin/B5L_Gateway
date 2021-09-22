@@ -5,7 +5,7 @@
  *  Author: Jack Bowling
  */ 
 
-#include "libConversion.h"
+#include "libConversion.hpp"
 
 int str_to_int(const char *s)
 {

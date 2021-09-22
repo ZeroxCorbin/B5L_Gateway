@@ -8,8 +8,8 @@
 #ifndef LINCLUDES_CLSTCPSOCKET_H_
 #define LINCLUDES_CLSTCPSOCKET_H_
 
-#include "libConversion.h"
-#include "libException.h"
+#include "libConversion.hpp"
+#include "libException.hpp"
 
 #include <cstdio>
 #include <cstdlib>

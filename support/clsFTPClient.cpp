@@ -5,7 +5,7 @@
  *      Author: Jack Bowling
  */
 
-#include "clsFTPClient.h"
+#include "clsFTPClient.hpp"
 clsFTPClient FTP;
 
 bool clsFTPClient::Configure(){

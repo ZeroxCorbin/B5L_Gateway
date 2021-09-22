@@ -1,4 +1,4 @@
-#include "main.h"
+#include "b5l_gateway.hpp"
 
 using namespace std::chrono_literals;
 const char *FilePath="/home/zeroxcorbin/file.pcd";
@@ -65,7 +65,6 @@ void ClientConnectedThread(clsTCPSocket *client){
 			break;
 		}
 	}
-	client->Close();
 }
 
 void ListenWaitThread(){
@@ -87,6 +86,7 @@ void ListenWaitThread(){
 		if(Listener.Listen(client)){
 			ClientConnectedThread(client);
 
+			client->Close();
 			delete(client);
 
 			if(ExitApp == 1){
@@ -94,6 +94,7 @@ void ListenWaitThread(){
 			}
 		}else{
 			std::cout<< "Listen Error..."<< std::endl;
+
 			ExitApp = 1;
 
 			client->Close();
