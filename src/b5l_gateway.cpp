@@ -7,13 +7,12 @@ const char *FilePath="/home/zeroxcorbin/file.pcd";
 INT32 Tof_output_format = 0;
 
 int ExitApp = 0;
-
-clsTCPSocket Listener;
+std::mutex exitLock;
 
 bool SaveImageFile(){
 	std::cout<< "Reading sensor and saving to file."<< std::endl;
 
-	pcl::PointCloud<pcl::PointXYZI> cloud_;
+	pcl::PointCloud<pcl::PointXYZI> cloud_; 
 	if (CTOFSample::Run(&cloud_) == 0)
 	{
 		pcl::PCDWriter w;
@@ -58,6 +57,7 @@ void ClientConnectedThread(clsTCPSocket *client){
 				SendImageFile(client);
 			}
 			if(strcmp(client->recBuffer, "exit\r\n") == 0){
+				//std::lock_guard<std::mutex> lock(exitLock);
 				ExitApp = 1;
 				break;
 			}
@@ -68,12 +68,12 @@ void ClientConnectedThread(clsTCPSocket *client){
 }
 
 void ListenWaitThread(){
+	clsTCPSocket listener;
 
-	Listener.NameIP = "";
-	Listener.Port = 8890;
+	listener.NameIP = "";
+	listener.Port = 8890;
 	
-	if(!Listener.Configure()){
-		ExitApp = 1;
+	if(!listener.Configure()){
 		return;
 	}
 
@@ -83,24 +83,23 @@ void ListenWaitThread(){
 
 		clsTCPSocket *client = new (clsTCPSocket);
 
-		if(Listener.Listen(client)){
-			ClientConnectedThread(client);
+		if(listener.Listen(client)){
+			std::thread connected (ClientConnectedThread, client);
+			connected.join();
 
-			client->Close();
 			delete(client);
 
 			if(ExitApp == 1){
+				listener.Close();
 				break;
 			}
 		}else{
 			std::cout<< "Listen Error..."<< std::endl;
 
-			ExitApp = 1;
-
 			client->Close();
-			Listener.Close();
-
 			delete(client);
+
+			listener.Close();
 
 			break;
 		}	
@@ -114,13 +113,16 @@ int main()
 
 	/* Load USB serial module */
 #ifdef PI
-	system("sudo modprobe usbserial vendor=0x0590 product=0x00ca");
-	system("sudo chmod 666 /dev/ttyUSB0");
+    if (system(NULL)){
+       std::cout<< "Setting up serial port."<< std::endl;
+		system("sudo modprobe usbserial vendor=0x0590 product=0x00ca");
+		system("sudo chmod 666 /dev/ttyUSB0");		
+	}else{
+		std::cout<< "System commands not available."<< std::endl;
+	}
+
 #endif
 
-	// Listener.NameIP = "192.168.0.123";
-	// Listener.Port = 8890;
-	// if(!Listener.Configure()) return -1;
 	std::string config_file = SOURCE_DIR_PREFIX;
 	config_file.append(CONFIG_FILE_PATH);
 
@@ -129,20 +131,13 @@ int main()
 	/* Here we are supporting output format 257 || 258 || 1 || 2 */
 	/* Format validation done in Init function and if fails then it returns non zero value */
 
-    std::this_thread::sleep_for(250ms);
-
 	if (Ret == 0)
 	{	
 		std::thread listen (ListenWaitThread);
-
-		while(ExitApp == 0){
-			std::this_thread::sleep_for(10ms);
-		}
+		listen.join();
 	}
 
 	std::cout<< "B5L Testing version 0.2 exiting"<< std::endl;
-	
-	Listener.Close();
 
 	CTOFSample::Stop();
 
