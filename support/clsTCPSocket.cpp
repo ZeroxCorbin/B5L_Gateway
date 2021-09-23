@@ -33,15 +33,6 @@ bool clsTCPSocket::Configure(){
 			IP.sin_addr.s_addr = INADDR_ANY;
 		}
 		
-		#if WIN32
-		WSADATA wsaData;
-		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock (Windows only)", 8001);
-		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, IPPROTO_TCP);
-#else
-		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, 0);
-#endif
-		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
-
 		return true;
 
 	}catch(SocketException& ex){
@@ -79,13 +70,19 @@ bool clsTCPSocket::ConfigureFTP(void){
 
 bool clsTCPSocket::Listen(clsTCPSocket* client){
 	try {
+#if WIN32
+		WSADATA wsaData;
+		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock", 8001);
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, IPPROTO_TCP);
+#else
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, 0);
+#endif
+		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
 
-		if(IsBound == 0){
+		if(IsBound == 0)
 			if(bind(this->SocketNum, (struct sockaddr *) &this->IP, sizeof(IP)) < 0) throw SocketException ("Could not bind the socket",8003);
 			
-			IsBound = 1;
-		}
-
+		IsBound = 1;
 		listen(this->SocketNum,1);
 
 #if WIN32
@@ -99,10 +96,12 @@ bool clsTCPSocket::Listen(clsTCPSocket* client){
 
 		return true;
 	}catch(SocketException& ex) {
+		if(client->SocketNum > 0) Close(client->SocketNum);
 		UpdateUser((char*)ex.description().c_str(), ex.code());
 		return false;
 	}
 	catch(...) {
+		if(client->SocketNum > 0) Close(client->SocketNum);
 		UpdateUser((char*)"Unknown Listen() Error", 8021);
 		return false;
 	}
@@ -112,11 +111,24 @@ int clsTCPSocket::Connect()
 {
 	int rc = sizeof(int);
 	try{
-		rc = connect(this->SocketNum, (struct sockaddr *)&this->IP, sizeof(this->IP));
+
+#if WIN32
+		WSADATA wsaData;
+		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock (Windows only)", 8001);
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, IPPROTO_TCP);
+#else
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, 0);
+#endif
+		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
+
+		//int flags =1;
+		//setsockopt(this->SocketNum, SOL_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
+
+		uint32_t clilen = sizeof(this->IP);
+		rc = connect(this->SocketNum, (struct sockaddr *)&this->IP, clilen);
 		if(!(rc==0)) throw SocketException ("Could not connect to client", 8005);
 
 		return true;
-
 	}catch(SocketException& ex){
 		UpdateUser((char*)ex.description().c_str(), ex.code());
 		return false;
@@ -126,11 +138,14 @@ int clsTCPSocket::Connect()
 	}
 }
 
-int clsTCPSocket::Write(char* sendData)
+int clsTCPSocket::Write(const char* sendData, int dataLength)
 {
 	int rc = sizeof(int);
 	try{
-		rc = send(this->SocketNum, sendData, strlen(sendData),0);
+		if(dataLength == 0){
+			dataLength = strlen(sendData);
+		}
+		rc = send(this->SocketNum, sendData, dataLength,0);
 
 		if(rc < 0){
 			int  length = sizeof(int);
@@ -155,6 +170,15 @@ int clsTCPSocket::Write(char* sendData)
 	}
 }
 
+bool clsTCPSocket::HasData(){
+	int count;
+	ioctl(this->SocketNum, FIONREAD, &count);
+	if(count > 0)
+		return true;
+	else
+		return false;
+}
+
 long clsTCPSocket::Read(long dataLen){
 	int  rc, length = sizeof(int);
 
@@ -165,8 +189,9 @@ long clsTCPSocket::Read(long dataLen){
 		while(true){
 
 			//Peek at the receive buffer
-			rc = recv(this->SocketNum, &this->recBuffer[0], dataLen-length,MSG_PEEK);
-			if(rc > 0) rc = recv(this->SocketNum, &this->recBuffer[0], dataLen-length,0);
+			//rc = recv(this->SocketNum, &this->recBuffer[0], dataLen-length,MSG_PEEK);
+			//if(rc > 0) 
+				rc = recv(this->SocketNum, &this->recBuffer[0], dataLen-length,0);
 
 			if(rc < 0){
 				throw SocketException("Data read error", 8010);
@@ -186,11 +211,9 @@ long clsTCPSocket::Read(long dataLen){
 		this->recBuffer[length] = 0;
 		return length;
 	}catch(SocketException& ex){
-		this->recBuffer[length] = 0;
 		UpdateUser((char*)ex.description().c_str(), ex.code());
 		return -1;
 	}catch(...){
-		this->recBuffer[length] = 0;
 		UpdateUser((char*)"Unknown Read() Error", 8023);
 		return -1;
 	}

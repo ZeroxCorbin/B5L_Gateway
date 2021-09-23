@@ -38,7 +38,7 @@ void SendImageFile(clsTCPSocket *client){
 		infile.read(&data[0], file_size_in_byte);
 		infile.close();
 
-		client->Write(&data[0]);
+		client->Write(&data[0], file_size_in_byte);
 		std::cout<< "Sending data complete."<< std::endl;
 
 	}
