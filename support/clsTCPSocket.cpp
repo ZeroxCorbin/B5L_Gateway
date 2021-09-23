@@ -33,6 +33,15 @@ bool clsTCPSocket::Configure(){
 			IP.sin_addr.s_addr = INADDR_ANY;
 		}
 		
+		#if WIN32
+		WSADATA wsaData;
+		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock", 8001);
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, IPPROTO_TCP);
+#else
+		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, 0);
+#endif
+		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
+
 		return true;
 
 	}catch(SocketException& ex){
@@ -61,15 +70,6 @@ bool clsTCPSocket::ConfigureFTP(void){
 			memcpy(&IP.sin_addr, HostName->h_addr, sizeof(IP.sin_addr));
 		}
 
-		return true;
-	}catch(SocketException& ex){
-		UpdateUser((char*)ex.description().c_str(), ex.code());
-		return false;
-	}
-}
-
-bool clsTCPSocket::Listen(clsTCPSocket* client){
-	try {
 #if WIN32
 		WSADATA wsaData;
 		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock", 8001);
@@ -79,6 +79,15 @@ bool clsTCPSocket::Listen(clsTCPSocket* client){
 #endif
 		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
 
+		return true;
+	}catch(SocketException& ex){
+		UpdateUser((char*)ex.description().c_str(), ex.code());
+		return false;
+	}
+}
+
+bool clsTCPSocket::Listen(clsTCPSocket* client){
+	try {
 		if(IsBound == 0)
 			if(bind(this->SocketNum, (struct sockaddr *) &this->IP, sizeof(IP)) < 0) throw SocketException ("Could not bind the socket",8003);
 			
@@ -112,15 +121,7 @@ int clsTCPSocket::Connect()
 	int rc = sizeof(int);
 	try{
 
-#if WIN32
-		WSADATA wsaData;
-		if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) throw SocketException ("Could not load Winsock (Windows only)", 8001);
-		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, IPPROTO_TCP);
-#else
-		this->SocketNum = socket(IP.sin_family, SOCK_STREAM, 0);
-#endif
-		if(this->SocketNum <= 0) throw SocketException ("Could not create a socket", 8002);
-
+		//tightvnc
 		//int flags =1;
 		//setsockopt(this->SocketNum, SOL_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
 
@@ -211,9 +212,11 @@ long clsTCPSocket::Read(long dataLen){
 		this->recBuffer[length] = 0;
 		return length;
 	}catch(SocketException& ex){
+		Close();
 		UpdateUser((char*)ex.description().c_str(), ex.code());
 		return -1;
 	}catch(...){
+		Close();
 		UpdateUser((char*)"Unknown Read() Error", 8023);
 		return -1;
 	}

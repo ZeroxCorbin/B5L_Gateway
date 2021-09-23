@@ -77,12 +77,11 @@ void ListenWaitThread(){
 		return;
 	}
 
-	std::cout<< "Listening..."<< std::endl;
-
 	while(true){
 
 		clsTCPSocket *client = new (clsTCPSocket);
 
+		std::cout<< "Listening..."<< std::endl;
 		if(listener.Listen(client)){
 			std::thread connected (ClientConnectedThread, client);
 			connected.join();
