@@ -54,7 +54,7 @@ UINT8 outStatus, *outData;
  *
  * @return	On Succefull it returns 0 else returns error code
  */
-int CTOFSample::PCD_xyz_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_)
+int CTOFSample::PCD_xyz_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_)
 {
 	/* The result format should be 0x001 or 0x002 (PCD) */
 
@@ -98,7 +98,7 @@ int CTOFSample::PCD_xyz_cloud(unsigned char *puImage, pcl::PointCloud<pcl::Point
  *
  * @return	On Succefull it returns 0 else returns error code
  */
-int CTOFSample::PCD_xyzi_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_)
+int CTOFSample::PCD_xyzi_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_)
 {
 	/* The result format should be 0x101 or 0x102 (PCD + Amplitude) */
 
@@ -177,7 +177,7 @@ int CTOFSample::PCD_xyzi_cloud(unsigned char *puImage, pcl::PointCloud<pcl::Poin
  *
  * @return	On Succefull it returns 0 else returns error code
  */
-int CTOFSample::ImageOutput(INT32 ToF_Format, unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_)
+int CTOFSample::ImageOutput(INT32 ToF_Format, unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_)
 {
 	/* [CODE     - Data Type:                       Data Size (PCD) ] */
 	/* 001h,002h - rectangle coordinates:           0x708AA           */
@@ -653,7 +653,7 @@ void CTOFSample::Stop()
  *
  * @return	On Succefull it returns 0 else returns error code
  */
-int CTOFSample::Run(pcl::PointCloud<pcl::PointXYZI> * cloud_)
+int CTOFSample::Run(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_)
 {
 	char fname[1024];
 	INT32 ret = 0, outSize, format;

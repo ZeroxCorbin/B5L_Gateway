@@ -33,11 +33,11 @@ class CTOFSample
 public:
     CTOFSample(void);
     ~CTOFSample(void);
-    static int Run(pcl::PointCloud<pcl::PointXYZI> * cloud_);
+    static int Run(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_);
     static void Stop();
-    static int PCD_xyz_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_);
-    static int PCD_xyzi_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_);
-    static int ImageOutput(INT32 ToF_Format, unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI> * cloud_) ;
+    static int PCD_xyz_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_);
+    static int PCD_xyzi_cloud(unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_);
+    static int ImageOutput(INT32 ToF_Format, unsigned char *puImage, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_) ;
     static int SetParameter(const char *pcFileName);
     static int Init(std::string config_file, INT32 & Tof_output_format);
 };
