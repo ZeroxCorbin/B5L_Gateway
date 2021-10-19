@@ -37,7 +37,6 @@ else()
      set(SUPPORT_LIB ../CSupportLibrary/)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/support/)
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${SUPPORT_LIB}/include/)
@@ -49,9 +48,9 @@ add_definitions(${PCL_DEFINITIONS})
 find_package(PCL 1.3 REQUIRED)
 find_package(Boost COMPONENTS)
 
-if(WIN32)
-     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000")
-endif()
+# if(WIN32)
+#      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:1000000")
+# endif()
 
 set(CMAKE_THREAD_LIBS_INIT "-lpthread")
 set(CMAKE_HAVE_THREADS_LIBRARY 1)
@@ -64,10 +63,11 @@ link_directories(${PCL_LIBRARY_DIRS})
 
 add_executable(
      b5l_gateway
-     src/b5l_gateway.cpp
      src/ToF_Sample.cpp
      src/TOFApiZ.cpp
+     src/d6t_32l.cpp
      src/uart_linux.c
+     src/b5l_gateway.cpp
      ${SUPPORT_LIB}/src/clsTCPSocket.cpp
      ${SUPPORT_LIB}/src/libException.cpp
      #src/openni_mobile_server.cpp
