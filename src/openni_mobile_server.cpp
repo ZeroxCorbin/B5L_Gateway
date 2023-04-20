@@ -112,7 +112,7 @@ public:
                   float leaf_size_x = 0.01,
                   float leaf_size_y = 0.01,
                   float leaf_size_z = 0.01)
-  : port_(port), device_id_(device_id) ,viewer_("Hello")
+  : port_(port), device_id_(device_id) //,viewer_("Hello")
   {
     voxel_grid_filter_.setLeafSize(leaf_size_x, leaf_size_y, leaf_size_z);
   }
@@ -165,7 +165,7 @@ public:
     while (!getLatestPointCloud())
       std::this_thread::sleep_for(10ms);
 
-    viewer_.showCloud(getLatestPointCloud());
+    //viewer_.showCloud(getLatestPointCloud());
 
     boost::asio::io_service io_service;
     tcp::endpoint endpoint(tcp::v4(), static_cast<unsigned short>(port_));
@@ -180,7 +180,7 @@ public:
     double start_time = pcl::getTime();
     int counter = 0;
 
-    while (!viewer_.wasStopped()) {
+    while (true) {
 
       // wait for client
       unsigned int nr_points = 0;
@@ -211,7 +211,7 @@ public:
         std::cout << "fps: " << frames_per_second << std::endl;
       }
 
-      viewer_.showCloud(getLatestPointCloud());
+      //viewer_.showCloud(getLatestPointCloud());
     }
 
     //grabber.stop();
@@ -222,7 +222,7 @@ public:
   std::mutex mutex_;
 
   pcl::VoxelGrid<PointType> voxel_grid_filter_;
-  pcl::visualization::CloudViewer viewer_;
+  //pcl::visualization::CloudViewer viewer_;
 
   CloudPtr filtered_cloud_;
   PointCloudBuffers::Ptr buffers_;
@@ -249,12 +249,13 @@ void
     readSensorThread(){
         
         while(true){
-            pcl::PointCloud<pcl::PointXYZI> cloud_;
-            if (CTOFSample::Run(&cloud_) == 0)
+           pcl::PointCloud<pcl::PointXYZI>::Ptr
+	cloud_(new pcl::PointCloud<pcl::PointXYZI>());
+            if (CTOFSample::Run(cloud_) == 0)
             {
                 std::cout << "Sensor Read Complete!" << std::endl;
 
-                server->handleIncomingCloud(cloud_.);
+                server->handleIncomingCloud(cloud_);
                 std::cout << "Updated Cloud!" << std::endl;
             } 
             else{
@@ -272,8 +273,8 @@ main(int argc, char** argv)
     return 0;
   }
 
-  int port = 11111;
-  float leaf_x = 0.02f, leaf_y = 0.02f, leaf_z = 0.02f;
+  int port = 8890;
+  float leaf_x = 0.1f, leaf_y = 0.1f, leaf_z = 0.1f;
   std::string device_id;
 
   pcl::console::parse_argument(argc, argv, "-port", port);

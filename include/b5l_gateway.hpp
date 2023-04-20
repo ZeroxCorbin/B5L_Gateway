@@ -12,6 +12,8 @@
 
 #include <pcl/io/pcd_io.h>
 
+#include <ethercat.h>
+
 #include "clsTCPSocket.hpp"
 #include "ToF_Sample.hpp"
 #include "d6t_32l.hpp"

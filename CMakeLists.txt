@@ -7,7 +7,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	add_compile_options(-Wall -Wextra -Wpedantic)
+	add_compile_options(-Wall -Wextra )
 endif()
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/build)
@@ -41,9 +41,22 @@ include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${SUPPORT_LIB}/include/)
 
+#add_subdirectory(../Git/SOEM DESTINATION)
+#project(soem)
+#SOEM
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Git/SOEM/soem)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Git/SOEM/osal)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Git/SOEM/osal/linux)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Git/SOEM/oshw/linux)
+
 add_definitions(-DPI) #This is a Raspberry PI
 add_definitions(-DSOURCE_DIR_PREFIX="${CMAKE_CURRENT_SOURCE_DIR}")
 add_definitions(${PCL_DEFINITIONS})
+
+add_subdirectory(../Git/SOEM lib/${PROJECT_NAME})
+
+#find_library(soem ${CMAKE_CURRENT_SOURCE_DIR}/../Git/SOEM)
+#project(soem)
 
 find_package(PCL 1.3 REQUIRED)
 find_package(Boost COMPONENTS)
@@ -60,6 +73,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 link_directories(${PCL_LIBRARY_DIRS})
+link_directories(${SOEM_LIB_INSTALL_DIR})
 
 add_executable(
      b5l_gateway
@@ -67,7 +81,8 @@ add_executable(
      src/TOFApiZ.cpp
      src/d6t_32l.cpp
      src/uart_linux.c
-     src/b5l_gateway.cpp
+     #src/b5l_gateway.cpp
+     src/simpletest.c
      ${SUPPORT_LIB}/src/clsTCPSocket.cpp
      ${SUPPORT_LIB}/src/libException.cpp
      #src/openni_mobile_server.cpp
@@ -77,6 +92,7 @@ target_link_libraries(
      b5l_gateway
      Threads::Threads
      ${PCL_LIBRARIES}
+     soem
      )
 
 install(TARGETS

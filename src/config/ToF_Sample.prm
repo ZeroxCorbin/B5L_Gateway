@@ -26,7 +26,7 @@ OPERATION_MODE=0
 #     0~20
 #         *0:     ToF Sensor operates at max. FPS in setting Exposure Time.
 #         *Not 0: ToF Sensor tries to work with that FPS as much as possible.
-EXPOSURE_FPS=3000,0
+EXPOSURE_FPS=85,0
 
 #T3D Rotation Angle
 #    X, Y, Z: 0~359
